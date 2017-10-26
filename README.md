@@ -1,5 +1,6 @@
 # MorasDBConverter
 Converts a .json daoc db to moras db format.
+The .json database and metadata files can be found here: http://www.darkageofcamelot.com/content/downloadable-item-database (26.10.2017)
 ## Usage
 ```
 usage: MorasDBConverter.py [-h] [-e] [-i INPUT] [-o OUTPUT] [-m METADATA]
