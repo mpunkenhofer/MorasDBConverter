@@ -14,3 +14,7 @@ optional arguments:
   -m METADATA, --metadata METADATA
                         metadata file name
 ```
+
+## Acknowledgements 
+Most items get converted. Craft Tradeskill items will not be converted (stat types 23-26 ... if you see corresponding converison errors [-e] ) 
+Since this is the first version please report any bugs/errors you find in the converted moras database.
