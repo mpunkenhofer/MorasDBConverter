@@ -1,0 +1,4 @@
+.idea
+*.db3
+known issues/
+__pycache__/
