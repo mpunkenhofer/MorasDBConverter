@@ -614,10 +614,50 @@ class MorasConverter:
 
         # Instruments
         if 'category' in item and item['category'] == 4:
+            item_name = '' if 'name' not in item else item['name']
+            instrument_names = {
+                'Drum': 'Drum',
+                'Flute': 'Flute',
+                'Pipe': 'Flute',
+                'Lute': 'Lute',
+                'Dirge': 'Harp',
+                'Harp': 'Harp'
+            }
+
+            converted_instrument_class = {
+                'Flute Alb':    27,
+                'Drum Alb':     28,
+                'Lute Alb':     29,
+                'Harp Alb':     30,
+                'Flute Hib':    49,
+                'Drum Hib':     50,
+                'Lute Hib':     51,
+                'Harp Hib':     52
+            }
+
+            item_class_name = ''
+
+            for n in instrument_names.keys():
+                if item_name.find(n) != -1:
+                    item_class_name = instrument_names[n]
+                    break
+
+            # Default Harp
+            if not item_class_name:
+                item_class_name = 'Harp'
+
             if self.albion(item):
-                return 30  # Harp Alb
+                item_class_name += ' Alb'  # Harp Alb
             elif self.hibernia(item):
-                return 52  # Harp Hib
+                item_class_name += ' Hib'  # Harp Hib
+            else:
+                item_class_name += ' Hib'  # Default Hib
+
+            if item_class_name not in converted_instrument_class:
+                raise NotImplementedError(
+                    'Item class [%s] for this type of item[%d] not implemented.' % (item_class_name, item['id']))
+            else:
+                return converted_instrument_class[item_class_name]
 
         return -1
 
