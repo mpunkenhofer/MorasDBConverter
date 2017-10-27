@@ -3,3 +3,4 @@
 *.txt
 known issues/
 __pycache__/
+*.db3-journal
