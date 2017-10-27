@@ -1,4 +1,5 @@
 .idea
 *.db3
+*.txt
 known issues/
 __pycache__/
