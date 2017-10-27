@@ -73,7 +73,7 @@ def convert(db, json, converter, errors_enabled=False):
                           # description.
                           converter.description(item),
                           # url
-                          'www.necator.net/morasdb',
+                          'https://github.com/mpunkenhofer/MorasDBConverter',
                           # patch (do not use - causes moras to crash)
                           '',
                           # provider
@@ -166,7 +166,7 @@ def main():
         data = json.load(json_file)
         print("Done loading '%s' ..." % args.input)
 
-        convert(connection, data, MorasConverter('1.124', args.metadata), args.errors)
+        convert(connection, data, MorasConverter(args.metadata), args.errors)
 
     # Close
     connection.commit()

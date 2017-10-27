@@ -6,31 +6,33 @@ import json
 
 
 class MorasConverter:
-    def __init__(self, patch='1.124', metadata=''):
-        self.patch = patch
+    def __init__(self, metadata):
         self.moras_realm = {'All': 7, 'Alb': 1, 'Hib': 2, 'Mid': 4}
-        if metadata:
-            with open(metadata) as metadata_file:
-                print("Loading '%s' ..." % metadata)
-                self.metadata = json.load(metadata_file)
 
-                if self.metadata:
-                    abilities = '' if 'abilities' not in self.metadata else self.metadata['abilities']
-                    self.positions = [] if 'position' not in abilities else abilities['position']
-                    self.magic_types = [] if 'magic_type' not in abilities else abilities['magic_type']
-                    self.spells = [] if 'spell' not in abilities else abilities['spell']
-                    req = '' if 'requirements' not in self.metadata else self.metadata['requirements']
-                    self.classes = [] if 'usable_by' not in req else req['usable_by']
-                    bonus_types = [] if 'bonus_types' not in self.metadata else self.metadata['bonus_types']
-                    self.stats = [] if '1' not in bonus_types and 'sub_types' not in bonus_types['1'] else bonus_types['1']['sub_types']
-                    self.skills = [] if '2' not in bonus_types and 'sub_types' not in bonus_types['2'] else bonus_types['2']['sub_types']
-                    self.resists = [] if '5' not in bonus_types and 'sub_types' not in bonus_types['5'] else bonus_types['5']['sub_types']
-                    self.focuses = [] if '6' not in bonus_types and 'sub_types' not in bonus_types['6'] else bonus_types['6']['sub_types']
-                    self.toa_arte = [] if '35' not in bonus_types and 'sub_types' not in bonus_types['35'] else bonus_types['35']['sub_types']
-                    # self.myth_resi_cap = [] if '57' not in bonus_types and 'sub_types' not in bonus_types['57'] else bonus_types['57']['sub_types']
-                    # self.myth_stat_cap = [] if '64' not in bonus_types and 'sub_types' not in bonus_types['64'] else bonus_types['64']['sub_types']
-                    # self.myth_reis_and_cap = [] if '68' not in bonus_types and 'sub_types' not in bonus_types['68'] else bonus_types['68']['sub_types']
-                    # self.myth_stat_and_cap = [] if '75' not in bonus_types and 'sub_types' not in bonus_types['75'] else bonus_types['75']['sub_types']
+        if not metadata:
+            raise ValueError('Need metadata file for conversion!')
+
+        with open(metadata) as metadata_file:
+            print("Loading '%s' ..." % metadata)
+            self.metadata = json.load(metadata_file)
+
+            if self.metadata:
+                abilities = '' if 'abilities' not in self.metadata else self.metadata['abilities']
+                self.positions = [] if 'position' not in abilities else abilities['position']
+                self.magic_types = [] if 'magic_type' not in abilities else abilities['magic_type']
+                self.spells = [] if 'spell' not in abilities else abilities['spell']
+                req = '' if 'requirements' not in self.metadata else self.metadata['requirements']
+                self.classes = [] if 'usable_by' not in req else req['usable_by']
+                bonus_types = [] if 'bonus_types' not in self.metadata else self.metadata['bonus_types']
+                self.stats = [] if '1' not in bonus_types and 'sub_types' not in bonus_types['1'] else bonus_types['1']['sub_types']
+                self.skills = [] if '2' not in bonus_types and 'sub_types' not in bonus_types['2'] else bonus_types['2']['sub_types']
+                self.resists = [] if '5' not in bonus_types and 'sub_types' not in bonus_types['5'] else bonus_types['5']['sub_types']
+                self.focuses = [] if '6' not in bonus_types and 'sub_types' not in bonus_types['6'] else bonus_types['6']['sub_types']
+                self.toa_arte = [] if '35' not in bonus_types and 'sub_types' not in bonus_types['35'] else bonus_types['35']['sub_types']
+                # self.myth_resi_cap = [] if '57' not in bonus_types and 'sub_types' not in bonus_types['57'] else bonus_types['57']['sub_types']
+                # self.myth_stat_cap = [] if '64' not in bonus_types and 'sub_types' not in bonus_types['64'] else bonus_types['64']['sub_types']
+                # self.myth_reis_and_cap = [] if '68' not in bonus_types and 'sub_types' not in bonus_types['68'] else bonus_types['68']['sub_types']
+                # self.myth_stat_and_cap = [] if '75' not in bonus_types and 'sub_types' not in bonus_types['75'] else bonus_types['75']['sub_types']
 
                 print("Done loading '%s' ..." % metadata)
 
@@ -102,7 +104,7 @@ class MorasConverter:
         return description
 
     def patch(self):
-        return self.patch
+        return ''
 
     def class_restriction(self, item):
         if item and 'requirements' in item:
@@ -145,9 +147,7 @@ class MorasConverter:
                 stat_id = '' if 'id' not in bonus else str(bonus['id'])
 
                 if not value:
-                    print('ahhhhh')
-                if value == '':
-                    print('eatohuraoeu')
+                    raise ValueError('Item[%d] stat %d conversion error (stat without value)!' % (item['id'], stat_type))
 
                 # STATS
                 if stat_type == 1 and stat_id in self.stats:
@@ -360,7 +360,10 @@ class MorasConverter:
 
     @staticmethod
     def slot(item):
-        if item and 'slot' in item:
+        if not item:
+            return 0
+
+        if 'slot' in item:
             '''  json file          moras (-1)
                 "1": "Helm",        2
                 "2": "Hands",       1
@@ -395,8 +398,11 @@ class MorasConverter:
 
             return converted_slot[item['slot']]
 
-        if item and 'type_data' in item:
+        if 'type_data' in item:
             return 6  # moras weapon
+
+        if 'category' in item and item['category'] in [1, 4]:
+            return 6  # identifying moras slot type via category (1: Weapon, 4: Instrument)
 
         return '0'
 
@@ -467,7 +473,10 @@ class MorasConverter:
         return '0'  # default value
 
     def item_class(self, item):
-        if item and 'type_data' in item:
+        if not item:
+            return -1
+
+        if 'type_data' in item:
             type_data = item['type_data']
 
             if 'shield_size' in type_data:
@@ -602,6 +611,13 @@ class MorasConverter:
             else:
                 weapon_item_class = converted_weapon_class[skill]
                 return weapon_item_class
+
+        # Instruments
+        if 'category' in item and item['category'] == 4:
+            if self.albion(item):
+                return 30  # Harp Alb
+            elif self.hibernia(item):
+                return 52  # Harp Hib
 
         return -1
 
