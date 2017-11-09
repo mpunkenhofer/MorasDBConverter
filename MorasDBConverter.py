@@ -10,6 +10,7 @@ import json
 import time
 import sys
 import argparse
+import re
 
 errors_enabled = False
 
@@ -54,7 +55,18 @@ def progress_bar(value, endvalue, bar_length=20):
 
 
 def read_item_ids(filename):
-    return [59, 74]
+    ids = []
+    with open(filename) as f:
+        lines = f.readlines()
+
+    for line in lines:
+        line = line.split('#')[0]
+        if line:
+            pattern = r"\d+"
+            ids_on_line = re.findall(pattern, line)
+            ids += [] if not ids_on_line else ids_on_line
+
+    return ids
 
 
 def convert(db, json, converter, ignore):
