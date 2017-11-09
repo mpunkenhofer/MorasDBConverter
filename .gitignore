@@ -1,7 +1,7 @@
 .idea
 *.pyc
 *.db3
-*.txt
+help.txt
 known issues/
 __pycache__/
 *.db3-journal
