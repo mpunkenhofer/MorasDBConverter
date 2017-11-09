@@ -5,6 +5,10 @@
 import json
 
 
+class ConversionError(Exception):
+    pass
+
+
 class MorasConverter:
     def __init__(self, metadata):
         self.moras_realm = {'All': 7, 'Alb': 1, 'Hib': 2, 'Mid': 4}
@@ -17,97 +21,71 @@ class MorasConverter:
             self.metadata = json.load(metadata_file)
 
             if self.metadata:
-                abilities = '' if 'abilities' not in self.metadata else self.metadata['abilities']
-                self.positions = [] if 'position' not in abilities else abilities['position']
-                self.magic_types = [] if 'magic_type' not in abilities else abilities['magic_type']
-                self.spells = [] if 'spell' not in abilities else abilities['spell']
-                req = '' if 'requirements' not in self.metadata else self.metadata['requirements']
-                self.classes = [] if 'usable_by' not in req else req['usable_by']
-                bonus_types = [] if 'bonus_types' not in self.metadata else self.metadata['bonus_types']
-                self.stats = [] if '1' not in bonus_types and 'sub_types' not in bonus_types['1'] else bonus_types['1']['sub_types']
-                self.skills = [] if '2' not in bonus_types and 'sub_types' not in bonus_types['2'] else bonus_types['2']['sub_types']
-                self.resists = [] if '5' not in bonus_types and 'sub_types' not in bonus_types['5'] else bonus_types['5']['sub_types']
-                self.focuses = [] if '6' not in bonus_types and 'sub_types' not in bonus_types['6'] else bonus_types['6']['sub_types']
-                self.toa_arte = [] if '35' not in bonus_types and 'sub_types' not in bonus_types['35'] else bonus_types['35']['sub_types']
-                # self.myth_resi_cap = [] if '57' not in bonus_types and 'sub_types' not in bonus_types['57'] else bonus_types['57']['sub_types']
-                # self.myth_stat_cap = [] if '64' not in bonus_types and 'sub_types' not in bonus_types['64'] else bonus_types['64']['sub_types']
-                # self.myth_reis_and_cap = [] if '68' not in bonus_types and 'sub_types' not in bonus_types['68'] else bonus_types['68']['sub_types']
-                # self.myth_stat_and_cap = [] if '75' not in bonus_types and 'sub_types' not in bonus_types['75'] else bonus_types['75']['sub_types']
+                abilities = self.metadata['abilities']
+                self.positions = abilities['position']
+                self.magic_types = abilities['magic_type']
+                self.spells = abilities['spell']
+                req = self.metadata['requirements']
+                self.classes = req['usable_by']
+                bonus_types = self.metadata['bonus_types']
+                self.stats = bonus_types['1']['sub_types']
+                self.skills = bonus_types['2']['sub_types']
+                self.resists = bonus_types['5']['sub_types']
+                self.focuses = bonus_types['6']['sub_types']
+                self.toa_arte = bonus_types['35']['sub_types']
 
                 print("Done loading '%s' ..." % metadata)
+            else:
+                raise IOError("Failed to load metadata file!")
+
+    @staticmethod
+    def id(item):
+        if item and 'id' in item:
+            return item['id']
+        else:
+            return '-1'
 
     @staticmethod
     def name(item):
-        if not item or 'name' not in item:
-            raise ValueError('Item has no name!')
-        else:
+        if item and 'name' in item:
             return item['name']
+        else:
+            return ''
+
+    def identifier(self, item):
+        return self.name(item) + ' [' + self.id(item) + ' ]'
 
     @staticmethod
     def origin(item):
-        if not item or 'sources' not in item:
-            return ''
-        else:
-            sources = item['sources']
-            origin = ''
+        sources = item['sources']
+        origin = ''
 
-            if 'monsters' in sources:
-                origin += 'Dropped by:\n'
-                monsters = sources['monsters']
+        if 'monsters' in sources:
+            origin += 'Dropped by:\n'
+            monsters = sources['monsters']
 
-                if 'normal_drop' in monsters:
-                    origin += '\n'.join(monsters['normal_drop']) + '\n'
+            if 'normal_drop' in monsters:
+                origin += '\n'.join(monsters['normal_drop']) + '\n'
 
-                if 'one_time_drop' in monsters:
-                    origin += ' (OTD)\n'.join(monsters['one_time_drop']) + ' (OTD)\n'
+            if 'one_time_drop' in monsters:
+                origin += ' (OTD)\n'.join(monsters['one_time_drop']) + ' (OTD)\n'
 
-            if 'quests' in sources:
-                origin += 'Quests:\n'
-                origin += '\n'.join(sources['quests']) + '\n'
+        if 'quests' in sources:
+            origin += 'Quests:\n'
+            origin += '\n'.join(sources['quests']) + '\n'
 
-            if 'stores' in sources:
-                origin += 'Stores:\n'
-                origin += '\n'.join(sources['stores']) + '\n'
+        if 'stores' in sources:
+            origin += 'Stores:\n'
+            origin += '\n'.join(sources['stores']) + '\n'
 
-            return origin
+        return origin
 
     @staticmethod
     def description(item):
-        if not item:
-            return ''
-
-        description = ''
-
-        '''
-        if 'abilities' in item:
-            description += 'Abilities:\n'
-
-            abilities = item['abilities']
-            
-            for ability in abilities:
-                if 'position' in ability and self.positions:
-                    if str(ability['position']) in self.positions:
-                        description += self.positions[str(ability['position'])] + ':\n'
-                if 'spell' in ability and self.spells:
-                    if str(ability['spell']) in self.spells:
-                        description += self.spells[str(ability['spell'])] + '\n'
-                if 'max_charges' in ability:
-                    description += 'Max Charges: ' + str(ability['max_charges']) + '\n'
-                if 'magic_type' in ability and self.magic_types:
-                    if str(ability['magic_type']) in self.magic_types:
-                        description += 'Effect: ' + self.magic_types[str(ability['magic_type'])] + '\n'
-        '''
-
-        if 'delve_text' in item:
-            description += item['delve_text'] + '\n'
-
-        return description
-
-    def patch(self):
-        return ''
+        return item['delve_text'] + '\n'
 
     def class_restriction(self, item):
-        if item and 'requirements' in item:
+        if 'requirements' in item:
             if 'usable_by' in item['requirements']:
                 classes = []
 
@@ -126,7 +104,7 @@ class MorasConverter:
         return ''
 
     def bonuses(self, item):
-        if item and 'bonuses' in item:
+        if 'bonuses' in item:
             item_stats = []
             bonuses = item['bonuses']
 
@@ -134,7 +112,7 @@ class MorasConverter:
 
             for bonus in bonuses:
                 if 'type' not in bonus or 'value' not in bonus:
-                    raise ValueError('Item stats corrupt!')
+                    raise ConversionError(self.name(item) + ' [' + self.n)
 
                 level_req = '0'
 
@@ -144,16 +122,17 @@ class MorasConverter:
 
                 stat_type = bonus['type']
                 value = str(bonus['value'])
-                stat_id = '' if 'id' not in bonus else str(bonus['id'])
 
-                if not value:
-                    raise ValueError('Item[%d] stat %d conversion error (stat without value)!' % (item['id'], stat_type))
+                try:
+                    stat_id = str(bonus['id'])
+                except KeyError:
+                    raise ConversionError(self.identifier(item) + ': has no stats!')
 
                 # STATS
-                if stat_type == 1 and stat_id in self.stats:
+                if stat_type == 1:
                     item_stats.append(self.stats[stat_id].upper() + ':' + value + ':' + level_req)
                 # SKILLS
-                elif stat_type == 2 and stat_id in self.skills:
+                elif stat_type == 2:
                     special_stats = {'300': 'ALL_MELEE_BONUS',
                                      '301': 'ALL_DUAL_WIELD_BONUS',
                                      '302': 'ALL_ARCHERY_BONUS',
@@ -168,17 +147,17 @@ class MorasConverter:
                 elif stat_type == 4:
                     item_stats.append('HITPOINTS' + ':' + value + ':' + level_req)
                 # RESITS
-                elif stat_type == 5 and stat_id in self.resists:
-                    item_stats.append('RES_' + self.resists[stat_id].upper() + ':' + value + ':' + level_req)
-                # RESIST ID 0 issue (ignore resist)
-                elif stat_type == 5 and stat_id == '0':
-                    continue
+                elif stat_type == 5:
+                    # resist id 0 issue (we choose to ignore the resist in this case)
+                    if stat_id == '0':
+                        continue
+                    else:
+                        item_stats.append('RES_' + self.resists[stat_id].upper() + ':' + value + ':' + level_req)
                 # FOCUSES
-                elif stat_type == 6 and stat_id in self.focuses:
+                elif stat_type == 6:
                     special_stats = {'303': 'ALL_MAGIC_FOCUS',  # All Casting
                                      '304': 'ALL_MAGIC_FOCUS'   # All Focus
                                      }
-
                     if stat_id in special_stats:
                         item_stats.append(special_stats[stat_id] + ':' + value + ':' + level_req)
                     else:
@@ -186,7 +165,7 @@ class MorasConverter:
                 elif stat_type == 27:
                     item_stats.append('ARCHERY_SPELL_DAMAGE_BONUS' + ':' + value + ':' + level_req)
                 # CAP STATS
-                elif stat_type == 28 and stat_id in self.stats:
+                elif stat_type == 28:
                     item_stats.append('CAP_' + self.stats[stat_id].upper() + ':' + value + ':' + level_req)
                 # TOA ARTE
                 elif stat_type == 35:
@@ -205,18 +184,19 @@ class MorasConverter:
                         else:
                             item_stats.append(converted_stat[stat_id] + ':' + value + ':' + level_req)
                     else:
-                        raise ValueError('Item Toa Arfifact stat %s conversion error (unknown stat)!' % stat_id)
+                        raise ConversionError(self.identifier(item) +
+                                              ' unknown toa arfifact stat %s!' % stat_id)
                 # OVERCAP RESITS
-                elif stat_type == 57 and stat_id in self.resists:
+                elif stat_type == 57:
                     item_stats.append('OVERCAP_RES_' + self.resists[stat_id].upper() + ':' + value + ':' + level_req)
                 # OVERCAP STATS
-                elif stat_type == 64 and stat_id in self.stats:
+                elif stat_type == 64:
                     item_stats.append('OVERCAP_' + self.stats[stat_id].upper() + ':' + value + ':' + level_req)
                 # OVERCAP RESITS AND CAP
-                elif stat_type == 68 and stat_id in self.resists:
+                elif stat_type == 68:
                     stat_and_overcap.append(('resist', self.resists[stat_id].upper(), value, level_req))
                 # OVERCAP STATS AND CAP
-                elif stat_type == 75 and stat_id in self.stats:
+                elif stat_type == 75:
                     stat_and_overcap.append(('stat', self.stats[stat_id].upper(), value, level_req))
                 # TOA
                 else:
@@ -280,7 +260,7 @@ class MorasConverter:
                         else:
                             item_stats.append(converted_stat[stat_type] + ':' + value + ':' + level_req)
                     else:
-                        raise ValueError('Item[%d] stat %d conversion error (unknown stat)!' % (item['id'], stat_type))
+                        raise ConversionError(self.identifier() + ': unknown stat: %d!' % stat_type)
 
             for stat in stat_and_overcap:
                 (stat_t, stat_n, stat_v, stat_lvl) = stat
@@ -295,7 +275,7 @@ class MorasConverter:
                     stat_name = stat_n
                     stat_overcap_name = 'OVERCAP_' + stat_n
                 else:
-                    raise ValueError('Item[%d], Mythical stat %s conversion error!' % (item['id'], stat_t))
+                    raise ConversionError(self.identifier(item) + ': unknown mythical stat %s !' % stat_t)
 
                 # 1) look if the stat is already in item_stats
                 # 2) if the stat is in there edit and add the value
@@ -309,7 +289,7 @@ class MorasConverter:
                     # 5) if it is not there add the over cap
                     item_stats.append(stat_overcap_name + ':' + stat_v + ':' + stat_lvl)
 
-            # in moras item only have 10 slots ... try to remove overcap res values
+            # in moras items only have 10 slots ... try to remove overcap res values
             if len(item_stats) > 10:
                 while len(item_stats) > 10:
                     found = False
@@ -321,11 +301,11 @@ class MorasConverter:
                             break
 
                     if not found:
-                        raise ValueError('Item[%d] has too many stats (could not fix)!' % item['id'])
+                        raise ConversionError(self.identifier(item) + ' has too many stats (unfixable)!')
 
             return ';'.join(item_stats)
         else:
-            raise ValueError('Item[%d] has no stats!' % item['id'])
+            raise ConversionError(self.identifier() + ': has no stats!')
 
     @staticmethod
     def edit_stat(item_stats, stat_name, stat_value):
@@ -346,23 +326,20 @@ class MorasConverter:
 
             return converted_realm[item['realm']]
         else:
-            raise ValueError('Item has no realm!')
+            raise ConversionError(self.identifier(item) + ': has no realm!')
 
     @staticmethod
     def level(item):
-        if item and 'requirements' in item:
+        if 'requirements' in item:
             if 'level_required' in item['requirements']:
                 return item['requirements']['level_required']
-        if item and 'bonus_level' in item:
+        if 'bonus_level' in item:
             return item['bonus_level']
 
         return '0'  # default value
 
     @staticmethod
     def slot(item):
-        if not item:
-            return 0
-
         if 'slot' in item:
             '''  json file          moras (-1)
                 "1": "Helm",        2
@@ -422,7 +399,7 @@ class MorasConverter:
 
     @staticmethod
     def dps(item):
-        if item and 'type_data' in item:
+        if 'type_data' in item:
             type_data = item['type_data']
             if 'dps' in type_data:
                 return type_data['dps']
@@ -431,30 +408,27 @@ class MorasConverter:
 
         return '0'  # default value
 
-    @staticmethod
-    def damage_type(item):
-        if item and 'type_data' in item:
+    def damage_type(self, item):
+        if 'type_data' in item:
             type_data = item['type_data']
             if 'damage_type' in type_data:
                 # moras         daoc
                 # 1 (slash)     2 (slash)
                 # 2 (thrust)    3 (thrust)
                 # 3 (crush)     1 (crush)
-                #               10 (heat)
-                #               5 (Crossbow of the Blackheart id: 41173)
-                #               17 (Soul Flayer id: 58105)
-                converted_damage_typ = {2: 1, 3: 2, 1: 3, 10: 1, 5: 3, 17: 3}
+                converted_damage_typ = {2: 1, 3: 2, 1: 3}
 
                 if type_data['damage_type'] not in converted_damage_typ:
                     print(type_data['damage_type'])
-
+                else:
+                    raise ConversionError(self.identifier(item) + ' unknown damage type (%d)' % type_data['damage_type'])
                 return converted_damage_typ[type_data['damage_type']]
 
         return '0'
 
     @staticmethod
     def speed(item):
-        if item and 'type_data' in item:
+        if 'type_data' in item:
             type_data = item['type_data']
             if 'speed' in type_data:
                 return type_data['speed']
@@ -463,7 +437,7 @@ class MorasConverter:
 
     @staticmethod
     def armor_factor(item):
-        if item and 'type_data' in item:
+        if 'type_data' in item:
             type_data = item['type_data']
             if 'armor_factor' in type_data:
                 return type_data['armor_factor']
@@ -473,9 +447,6 @@ class MorasConverter:
         return '0'  # default value
 
     def item_class(self, item):
-        if not item:
-            return -1
-
         if 'type_data' in item:
             type_data = item['type_data']
 
@@ -552,8 +523,8 @@ class MorasConverter:
 
             }
 
-            skill_id = '' if 'skill_used' not in type_data else str(type_data['skill_used'])
-            skill = '' if skill_id not in self.skills else self.skills[skill_id]
+            skill_id = str(type_data['skill_used'])
+            skill = self.skills[skill_id]
 
             '''
             if skill == 'Hand to Hand' and not self.left_handed(item):
@@ -607,7 +578,7 @@ class MorasConverter:
                     skill += ' All'
 
             if skill not in converted_weapon_class:
-                raise NotImplementedError('Item class [%s] for this type of item[%d] not implemented.' % (skill, item['id']))  # TODO
+                raise NotImplementedError(self.identifier(item) + ': item class [%s] not implemented.' % skill)
             else:
                 weapon_item_class = converted_weapon_class[skill]
                 return weapon_item_class
@@ -654,8 +625,7 @@ class MorasConverter:
                 item_class_name += ' Hib'  # Default Hib
 
             if item_class_name not in converted_instrument_class:
-                raise NotImplementedError(
-                    'Item class [%s] for this type of item[%d] not implemented.' % (item_class_name, item['id']))
+                raise NotImplementedError(self.identifier(item) + ' item class [%s] not implemented.' % item_class_name)
             else:
                 return converted_instrument_class[item_class_name]
 
@@ -712,7 +682,7 @@ class MorasConverter:
 
     @staticmethod
     def two_handed(item):
-        if item and 'type_data' in item:
+        if 'type_data' in item:
             type_data = item['type_data']
             if 'two_handed' in type_data:
                 if type_data['two_handed'] == 1:
@@ -721,7 +691,7 @@ class MorasConverter:
 
     @staticmethod
     def left_handed(item):
-        if item and 'type_data' in item:
+        if 'type_data' in item:
             type_data = item['type_data']
             if 'left_handed' in type_data:
                 if type_data['left_handed'] == 1:
@@ -733,12 +703,12 @@ class MorasConverter:
 
     @staticmethod
     def is_artifact(item):
-        if item and 'artifact' in item:
+        if 'artifact' in item:
             return item['artifact']
 
     @staticmethod
     def is_shield(item):
-        if item and 'type_data' in item:
+        if 'type_data' in item:
             type_data = item['tye_data']
             if 'shield_size' in type_data:
                 return True
@@ -746,7 +716,7 @@ class MorasConverter:
 
     @staticmethod
     def is_instrument(item):
-        if item and 'category' in item:
+        if 'category' in item:
             return item['category'] == 4
         return False
 

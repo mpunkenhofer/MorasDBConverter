@@ -3,12 +3,15 @@
 # Date: 25.10.2017
 
 from MorasConverter import MorasConverter
+from MorasConverter import ConversionError
 from pathlib import Path
 import sqlite3
 import json
 import time
 import sys
 import argparse
+
+errors_enabled = False
 
 
 def file_exists(file_name):
@@ -50,7 +53,7 @@ def progress_bar(value, endvalue, bar_length=20):
     sys.stdout.flush()
 
 
-def convert(db, json, converter, errors_enabled=False):
+def convert(db, json, converter):
     c = db.cursor()
     items = json["items"]
 
@@ -114,8 +117,12 @@ def convert(db, json, converter, errors_enabled=False):
                           timestamp
                       )
 
-        except (ValueError, NotImplementedError) as e:
-            errors.append('Failed to convert item %d of %d. (%s)' % (i + 1, len(items), str(e)))
+        except NotImplementedError as e:
+            errors.append('Not Implemented Error: ' + e)
+        except ConversionError as e:
+            errors.append('Conversion Error: ' + e)
+        except KeyError as e:
+            errors.append('Error: ' + e)
         else:
             c.execute("Insert INTO items VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", db_item)
             converted_items += 1
@@ -139,34 +146,36 @@ def convert(db, json, converter, errors_enabled=False):
 def main():
     parser = argparse.ArgumentParser(description='Converts a .json daoc db to moras db format.')
 
+    parser.add_argument('database', type=str, help='daoc item database file (.json)')
+    parser.add_argument('metadata', type=str, help='daoc item database metadata file (.json)')
+    parser.add_argument('-o', '--output', type=str, default='items.db3', help='output file name (moras database)')
     parser.add_argument('-e', '--errors', help='display conversion errors', action='store_true')
-    parser.add_argument('-i', '--input', type=str, default='res/static_objects.json', help='input file name')
-    parser.add_argument('-o', '--output', type=str, default='items.db3', help='output file name')
-    parser.add_argument('-m', '--metadata', type=str, default='res/daoc_db_metadata.json',  help='metadata file name')
+    parser.add_argument('-i', '--ignore', metavar='ID', nargs='+', type=int, help='ignore item(s) with a matching ID')
+
     args = parser.parse_args()
 
-    if file_exists(args.output):
-        print("Error: output file '%s' already exists." % args.output)
-        return 1
-
-    if not file_exists(args.input):
-        print("Error: input file '%s' does not exists." % args.input)
+    if not file_exists(args.database):
+        print("Error: database file '%s' does not exists." % args.database)
         return 1
 
     if not file_exists(args.metadata):
         print("Error: metadata file '%s' does not exists." % args.metadata)
         return 1
 
+    if file_exists(args.output):
+        print("Error: output file '%s' already exists." % args.output)
+        return 1
+
     print("Creating database '%s' ..." % args.output)
     connection = sqlite3.connect(args.output)
     create_db(connection)
 
-    with open(args.input) as json_file:
-        print("Loading '%s' ..." % args.input)
+    with open(args.database) as json_file:
+        print("Loading '%s' ..." % args.database)
         data = json.load(json_file)
-        print("Done loading '%s' ..." % args.input)
+        print("Done loading '%s' ..." % args.database)
 
-        convert(connection, data, MorasConverter(args.metadata), args.errors)
+        convert(connection, data, MorasConverter(args.metadata))
 
     # Close
     connection.commit()
