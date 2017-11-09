@@ -1,0 +1,40 @@
+# https://github.com/mpunkenhofer/MorasDBConverte
+# 2017-11-09
+
+# This file serves as an example on how to use the ignore file
+# feature and to ignore certain items which won't be converted
+# so that those items won't show up in the error list (-e)
+
+# This file has to be revised for every new release of a
+# database.json (offical daoc database) since they could
+# change item ids or fix broken items
+
+# Just post an id separated by a non digit in order to
+# be ignored with the -if option
+
+# Craft Tradeskill items (unkown stat errors: 23, 24, 25, 26)
+1899, 1935, 1989, 2593, 2594, 2595, 2596, 2597, 2644
+15893, 15894, 15895, 15896, 15897, 15898, 15899
+27851, 27857, 27863, 27870, 27876, 27882, 27889, 27895
+27901, 27908, 27914, 27970, 27971, 27972, 27973, 27974
+27975, 27976, 27977, 27978, 27979, 27980, 27981, 27982
+27983, 27984, 27985, 27986, 27987, 27997, 58525, 58526
+60711, 64275, 64276, 64277, 64278, 64279, 64280, 64281
+64282, 64283, 64284, 64285, 64286, 64311, 64312, 64313
+64314, 64315, 64316, 64317, 64318, 64319, 64320, 64321
+64322
+
+# Mythirian which have no stat in the daoc database .json
+59354 # Lesser Alightment Mythirian
+59360 # Average Alightment Mythirian
+59366 # Greater Alightment Mythirian
+59457 # Mythirian of Ektaktos
+
+# Unknown damage types on weapons
+25781 # Never-ending Flame (10)
+41173 # Crossbow of the Blackheart (5)
+58105 # Soul Flayer (17)
+
+# Misc Issues
+6034, 14733, 60909
+
