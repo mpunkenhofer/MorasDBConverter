@@ -53,7 +53,7 @@ class MorasConverter:
             return ''
 
     def identifier(self, item):
-        return self.name(item) + ' [' + self.id(item) + ' ]'
+        return self.name(item) + ' [' + str(self.id(item)) + ']'
 
     @staticmethod
     def origin(item):
@@ -112,7 +112,7 @@ class MorasConverter:
 
             for bonus in bonuses:
                 if 'type' not in bonus or 'value' not in bonus:
-                    raise ConversionError(self.name(item) + ' [' + self.n)
+                    raise ConversionError(self.identifier(item) + ' empty bonus information!')
 
                 level_req = '0'
 
@@ -123,10 +123,7 @@ class MorasConverter:
                 stat_type = bonus['type']
                 value = str(bonus['value'])
 
-                try:
-                    stat_id = str(bonus['id'])
-                except KeyError:
-                    raise ConversionError(self.identifier(item) + ': has no stats!')
+                stat_id = '' if 'id' not in bonus else str(bonus['id'])
 
                 # STATS
                 if stat_type == 1:
@@ -185,7 +182,7 @@ class MorasConverter:
                             item_stats.append(converted_stat[stat_id] + ':' + value + ':' + level_req)
                     else:
                         raise ConversionError(self.identifier(item) +
-                                              ' unknown toa arfifact stat %s!' % stat_id)
+                                              ' unknown toa arfifact stat (%s)' % stat_id)
                 # OVERCAP RESITS
                 elif stat_type == 57:
                     item_stats.append('OVERCAP_RES_' + self.resists[stat_id].upper() + ':' + value + ':' + level_req)
@@ -260,7 +257,7 @@ class MorasConverter:
                         else:
                             item_stats.append(converted_stat[stat_type] + ':' + value + ':' + level_req)
                     else:
-                        raise ConversionError(self.identifier() + ': unknown stat: %d!' % stat_type)
+                        raise ConversionError(self.identifier(item) + ': unknown stat: (%d)' % stat_type)
 
             for stat in stat_and_overcap:
                 (stat_t, stat_n, stat_v, stat_lvl) = stat
@@ -275,7 +272,7 @@ class MorasConverter:
                     stat_name = stat_n
                     stat_overcap_name = 'OVERCAP_' + stat_n
                 else:
-                    raise ConversionError(self.identifier(item) + ': unknown mythical stat %s !' % stat_t)
+                    raise ConversionError(self.identifier(item) + ': unknown mythical stat (%s)' % stat_t)
 
                 # 1) look if the stat is already in item_stats
                 # 2) if the stat is in there edit and add the value
@@ -301,11 +298,11 @@ class MorasConverter:
                             break
 
                     if not found:
-                        raise ConversionError(self.identifier(item) + ' has too many stats (unfixable)!')
+                        raise ConversionError(self.identifier(item) + ' has too many stats (unfixable)')
 
             return ';'.join(item_stats)
         else:
-            raise ConversionError(self.identifier() + ': has no stats!')
+            raise ConversionError(self.identifier(item) + ': has no stats!')
 
     @staticmethod
     def edit_stat(item_stats, stat_name, stat_value):
@@ -419,10 +416,10 @@ class MorasConverter:
                 converted_damage_typ = {2: 1, 3: 2, 1: 3}
 
                 if type_data['damage_type'] not in converted_damage_typ:
-                    print(type_data['damage_type'])
+                    raise ConversionError(
+                        self.identifier(item) + ' unknown damage type (%d)' % type_data['damage_type'])
                 else:
-                    raise ConversionError(self.identifier(item) + ' unknown damage type (%d)' % type_data['damage_type'])
-                return converted_damage_typ[type_data['damage_type']]
+                    return converted_damage_typ[type_data['damage_type']]
 
         return '0'
 

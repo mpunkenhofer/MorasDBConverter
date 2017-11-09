@@ -118,11 +118,12 @@ def convert(db, json, converter):
                       )
 
         except NotImplementedError as e:
-            errors.append('Not Implemented Error: ' + e)
+            errors.append('Not Implemented Error: ' + str(e))
         except ConversionError as e:
-            errors.append('Conversion Error: ' + e)
+            errors.append('Conversion Error: ' + str(e))
         except KeyError as e:
-            errors.append('Error: ' + e)
+            item_id = converter.identifier(item)
+            errors.append('Key Error: ' + item_id + ': ' + str(e))
         else:
             c.execute("Insert INTO items VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", db_item)
             converted_items += 1
@@ -151,8 +152,12 @@ def main():
     parser.add_argument('-o', '--output', type=str, default='items.db3', help='output file name (moras database)')
     parser.add_argument('-e', '--errors', help='display conversion errors', action='store_true')
     parser.add_argument('-i', '--ignore', metavar='ID', nargs='+', type=int, help='ignore item(s) with a matching ID')
+    parser.add_argument('-if', '--ignore-file', type=str, help='same as -i but input is a file')
 
     args = parser.parse_args()
+
+    global errors_enabled
+    errors_enabled = args.errors
 
     if not file_exists(args.database):
         print("Error: database file '%s' does not exists." % args.database)
