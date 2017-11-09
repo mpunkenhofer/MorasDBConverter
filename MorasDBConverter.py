@@ -66,7 +66,7 @@ def read_item_ids(filename):
             ids_on_line = re.findall(pattern, line)
             ids += [] if not ids_on_line else ids_on_line
 
-    return ids
+    return [int(i) for i in ids]
 
 
 def convert(db, json, converter, ignore):

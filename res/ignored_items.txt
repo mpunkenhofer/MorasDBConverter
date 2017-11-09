@@ -36,5 +36,6 @@
 58105 # Soul Flayer (17)
 
 # Misc Issues
+63122 # Ring of the Azure with wrong stats
 6034, 14733, 60909
 
