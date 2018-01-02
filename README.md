@@ -1,6 +1,6 @@
 # MorasDBConverter
 Converts a .json daoc db to moras db format.
-The .json database and metadata files can be found here: http://www.darkageofcamelot.com/content/downloadable-item-database (2017-11-09)
+The .json database and metadata files can be found here: http://www.darkageofcamelot.com/content/downloadable-item-database (2018-01-02)
 ## Version 1.2
 This version was released on 2018-01-02 ... [changes](https://github.com/mpunkenhofer/MorasDBConverter/releases/tag/v1.2)
 ## Usage
