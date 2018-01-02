@@ -185,6 +185,10 @@ class MorasConverter:
                                               ' unknown toa arfifact stat (%s)' % stat_id)
                 # OVERCAP RESITS
                 elif stat_type == 57:
+                    # Workaround for  Mythical Resist Cap ():2 stat
+                    if stat_id == '0':
+                        continue
+
                     item_stats.append('OVERCAP_RES_' + self.resists[stat_id].upper() + ':' + value + ':' + level_req)
                 # OVERCAP STATS
                 elif stat_type == 64:
@@ -564,7 +568,7 @@ class MorasConverter:
                     skill += ' Hib'
 
             # Mauler stuff
-            if skill in ['Fist Wraps', 'Hand to Hand', 'Mauler Staff']:
+            if skill in ['Fist Wraps', 'Mauler Staff']:
                 if self.albion(item):
                     skill += ' Alb'
                 elif self.hibernia(item):
@@ -573,6 +577,10 @@ class MorasConverter:
                     skill += ' Mid'
                 else:
                     skill += ' All'
+
+            # Hand to Hand -> Claw in Moras
+            if skill == 'Hand to Hand':
+                skill = 'Claw'
 
             if skill not in converted_weapon_class:
                 raise NotImplementedError(self.identifier(item) + ': item class [%s] not implemented.' % skill)
