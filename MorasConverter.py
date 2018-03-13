@@ -217,7 +217,7 @@ class MorasConverter:
                                       22: 'AF_BONUS',
                                       27: 'ARCHERY_SPELL_DAMAGE_BONUS',
                                       29: 'CAP_HITPOINTS',
-                                      30: 'CAP_POWER_PERCENTAGE_BONUS',
+                                      30: 'CAP_POWER',
                                       31: '',  # Toa Fatigue Cap
                                       32: 'REDUCE_MAGIC_RESISTS',
                                       34: 'POWER_PERCENTAGE_BONUS',
