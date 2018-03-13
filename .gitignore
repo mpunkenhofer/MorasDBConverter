@@ -2,6 +2,7 @@
 *.pyc
 *.db3
 help.txt
-known issues/
 __pycache__/
 *.db3-journal
+known issues.txt
+res/item_database.json
