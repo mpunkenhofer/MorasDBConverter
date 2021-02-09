@@ -218,7 +218,7 @@ def main():
     connection = sqlite3.connect(args.output)
     create_db(connection)
 
-    with open(args.database) as json_file:
+    with open(args.database, encoding='latin1') as json_file:
         print("Loading '%s' ..." % args.database)
         data = json.load(json_file)
         print("Done loading '%s' ..." % args.database)
